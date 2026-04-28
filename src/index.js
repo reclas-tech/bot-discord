@@ -5,13 +5,19 @@ const { botToken } = require("./configs/config");
 const { Client, GatewayIntentBits } = require("discord.js");
 
 const client = new Client({
-    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers],
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+  ],
 });
 
 const eventsPath = path.join(__dirname, "events");
 const eventFiles = fs.readdirSync(eventsPath);
 
 for (const file of eventFiles) {
+    console.log("Loading event:", file);
     const event = require(`./events/${file}`);
 
     if (event.once) {
