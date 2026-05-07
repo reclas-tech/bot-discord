@@ -3,44 +3,84 @@ const config = require("../configs/config");
 const { checkUploads, checkLive } = require("../services/youtube.services");
 
 module.exports = {
-  name: Events.ClientReady,
-  once: true,
+    name: Events.ClientReady,
+    once: true,
 
-  async execute(client) {
-    console.log(`Logged in as ${client.user.tag}`);
+    async execute(client) {
+        console.log(`Logged in as ${client.user.tag}`);
 
-    async function youtubeAnnouncement() {
-      try {
-        const upload = await checkUploads(config);
-        const live = await checkLive(config);
-
-        const channel = await client.channels.fetch(
-          config.youtubeUploadAnnouncementChannelId
+        const uploadAnnouncementChannel = await client.channels.fetch(
+            config.youtubeUploadAnnouncementChannelId,
         );
 
-        if (!channel) return;
+        const liveAnnouncementChannel = await client.channels.fetch(
+            config.youtubeLiveAnnouncementChannelId,
+        );
 
-        if (upload.type === "new") {
-          for (const v of upload.videos) {
-            await channel.send(
-              `📺 Upload baru:\n${v.title}\nhttps://youtu.be/${v.id}`
-            );
-          }
+        async function youtubeAnnouncement() {
+            try {
+                // Check uploads
+                const upload = await checkUploads(
+                    config.youtubeApiKey,
+                    config.youtubeUploadsPlaylistId,
+                );
+
+                if (upload.type === "init") {
+                    console.log("Initial YouTube upload cache created.");
+                }
+
+                if (upload.type === "empty") {
+                    console.log("Uploads playlist is empty.");
+                }
+
+                if (upload.type === "new") {
+                    for (const video of upload.videos) {
+                        await uploadAnnouncementChannel.send(
+                            [
+                                "📺 Upload baru!",
+                                `**${video.title}**`,
+                                `https://youtu.be/${video.id}`,
+                            ].join("\n"),
+                        );
+                    }
+                }
+
+                // Check live
+                const live = await checkLive(config.youtubeChannelId);
+
+                if (live.type === "new") {
+                    await liveAnnouncementChannel.send(
+                        [
+                            "🔴 LIVE SEKARANG!",
+                            `**${live.live.title}**`,
+                            live.live.url,
+                        ].join("\n"),
+                    );
+                }
+
+                if (live.type === "ended") {
+                    await liveAnnouncementChannel.send("📴 Live telah selesai.");
+                }
+
+                // ===== DEBUG LOG =====
+                if (
+                    upload.type === "no_new" &&
+                    (live.type === "offline" || live.type === "live")
+                ) {
+                    console.log("[YouTube] No new updates.");
+                }
+            } catch (error) {
+                console.error("[YouTube Announcement Error]");
+
+                console.error(error);
+            }
         }
 
-        if (live.type === "live") {
-          await channel.send(
-            `🔴 LIVE MULAI!\n${live.title}\nhttps://youtu.be/${live.id}`
-          );
-        }
+        await youtubeAnnouncement();
 
-      } catch (err) {
-        console.error("Scheduler error:", err.message);
-      }
-    }
-
-    youtubeAnnouncement();
-
-    setInterval(youtubeAnnouncement, 5 * 60 * 1000);
-  },
+        setInterval(
+            youtubeAnnouncement,
+            1 * 60 * 1000,
+        );
+    },
 };
