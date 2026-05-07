@@ -80,7 +80,7 @@ module.exports = {
 
         setInterval(
             youtubeAnnouncement,
-            1 * 60 * 1000,
+            5 * 60 * 1000,
         );
     },
 };
