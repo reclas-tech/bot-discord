@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const axios = require("axios");
+const logger = require("../utils/logger");
 const { execFile } = require("child_process");
 
 const filePath = path.join(__dirname, "../database/yt.json");
@@ -159,8 +160,7 @@ async function checkLive(channelId) {
                 }
 
                 if (error) {
-                    console.error("YT-DLP ERROR:");
-                    console.error(errorMessage);
+                    logger.error("[YouTube] Yt-dlp Error:", error);
 
                     return resolve({
                         type: "error",
@@ -200,8 +200,7 @@ async function checkLive(channelId) {
                         live,
                     });
                 } catch (parseError) {
-                    console.error("PARSE ERROR:");
-                    console.error(parseError);
+                    logger.error("[YouTube] Parse Error:", parseError);
 
                     return resolve({
                         type: "error",

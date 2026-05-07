@@ -1,4 +1,5 @@
 const { Events } = require("discord.js");
+const logger = require("../utils/logger");
 const config = require("../configs/config");
 const { checkUploads, checkLive } = require("../services/youtube.services");
 
@@ -26,11 +27,11 @@ module.exports = {
                 );
 
                 if (upload.type === "init") {
-                    console.log("Initial YouTube upload cache created.");
+                    logger.info("[YouTube] Initial YouTube upload cache created.");
                 }
 
                 if (upload.type === "empty") {
-                    console.log("Uploads playlist is empty.");
+                    logger.info("[YouTube] Uploads playlist is empty.");
                 }
 
                 if (upload.type === "new") {
@@ -62,17 +63,15 @@ module.exports = {
                     await liveAnnouncementChannel.send("📴 Live telah selesai.");
                 }
 
-                // ===== DEBUG LOG =====
+                // No updates
                 if (
                     upload.type === "no_new" &&
                     (live.type === "offline" || live.type === "live")
                 ) {
-                    console.log("[YouTube] No new updates.");
+                    logger.info("[YouTube] No new updates.");
                 }
             } catch (error) {
-                console.error("[YouTube Announcement Error]");
-
-                console.error(error);
+                logger.error("[YouTube] YouTube announcement error:", error);
             }
         }
 
