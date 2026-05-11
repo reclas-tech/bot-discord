@@ -1,45 +1,73 @@
 const { Events } = require("discord.js");
+const logger = require("../utils/logger");
 const config = require("../configs/config");
 const { checkUploads, checkLive } = require("../services/youtube.services");
 
 module.exports = {
-  name: Events.MessageCreate,
+    name: Events.MessageCreate,
 
-  async execute(message) {
-    if (message.author.bot) return;
-    if (message.channel.id !== config.youtubeUploadAnnouncementChannelId) return;
+    async execute(message) {
+        if (message.author.bot) return;
 
-    if (message.content === "!yt") {
-      try {
-        const upload = await checkUploads(config);
-        const live = await checkLive(config);
-
-        if (upload.type === "init") {
-          return message.reply("Data awal disimpan.");
+        if (message.channel.id !== config.youtubeUploadAnnouncementChannelId) {
+            return;
         }
 
-        if (upload.type === "no_new" && live.type !== "live") {
-          return message.reply("Tidak ada update.");
-        }
+        if (message.content !== "!yt") return;
 
-        if (upload.type === "new") {
-          for (const v of upload.videos) {
-            await message.channel.send(
-              `📺 Upload baru:\n${v.title}\nhttps://youtu.be/${v.id}`
+        try {
+            // Check uploads
+            const upload = await checkUploads(
+                config.youtubeApiKey,
+                config.youtubeUploadsPlaylistId,
             );
-          }
-        }
 
-        if (live.type === "live") {
-          await message.channel.send(
-            `🔴 LIVE!\n${live.title}\nhttps://youtu.be/${live.id}`
-          );
-        }
+            if (upload.type === "init") {
+                logger.info("[YouTube] Initial YouTube upload cache created.");
+            }
 
-      } catch (err) {
-        console.error(err);
-        await message.reply("Error ambil data YouTube.");
-      }
-    }
-  },
+            if (upload.type === "empty") {
+                logger.info("[YouTube] Uploads playlist is empty.");
+            }
+
+            if (upload.type === "new") {
+                for (const video of upload.videos) {
+                    await message.channel.send(
+                        [
+                            "📺 Upload baru!",
+                            `**${video.title}**`,
+                            `https://youtu.be/${video.id}`,
+                        ].join("\n"),
+                    );
+                }
+            }
+
+            // Check live
+            const live = await checkLive(config.youtubeChannelId);
+
+            if (live.type === "new") {
+                await message.channel.send(
+                    [
+                        "🔴 LIVE SEKARANG!",
+                        `**${live.live.title}**`,
+                        live.live.url,
+                    ].join("\n"),
+                );
+            }
+
+            if (live.type === "ended") {
+                await message.channel.send("📴 Live telah selesai.");
+            }
+
+            // No updates
+            if (
+                upload.type === "no_new" &&
+                (live.type === "offline" || live.type === "live")
+            ) {
+                logger.info("[YouTube] No new updates.");
+            }
+        } catch (error) {
+            logger.error("[YouTube] YouTube announcement error:", error);
+        }
+    },
 };
