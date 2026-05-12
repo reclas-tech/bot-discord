@@ -1,6 +1,10 @@
 const { Events } = require("discord.js");
 const logger = require("../utils/logger");
 const config = require("../configs/config");
+const { liveMessages } = require("../messages/yt/liveMessages");
+const { shortMessages } = require("../messages/yt/shortMessages");
+const { uploadMessages } = require("../messages/yt/uploadMessages");
+const { getRandomMessage } = require("../utils/getRandomMessage");
 const { checkUploads, checkLive } = require("../services/youtube.services");
 
 module.exports = {
@@ -34,9 +38,9 @@ module.exports = {
                 for (const video of upload.videos) {
                     await message.channel.send(
                         [
-                            "📺 Upload baru!",
+                            video.isShort ? getRandomMessage(shortMessages) : getRandomMessage(uploadMessages),
                             `**${video.title}**`,
-                            `https://youtu.be/${video.id}`,
+                            video .isShort ? `https://youtu.be/shorts/${video.id}` : `https://youtu.be/${video.id}`,
                         ].join("\n"),
                     );
                 }
@@ -48,7 +52,7 @@ module.exports = {
             if (live.type === "new") {
                 await message.channel.send(
                     [
-                        "🔴 LIVE SEKARANG!",
+                        getRandomMessage(liveMessages),
                         `**${live.live.title}**`,
                         live.live.url,
                     ].join("\n"),
@@ -56,7 +60,8 @@ module.exports = {
             }
 
             if (live.type === "ended") {
-                await message.channel.send("📴 Live telah selesai.");
+                logger.info("[YouTube] Live stream has ended.");
+                // await message.channel.send("📴 Live telah selesai.");
             }
 
             // No updates
