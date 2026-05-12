@@ -70,9 +70,10 @@ module.exports = {
                 }
 
                 if (live.type === "ended") {
-                    await liveAnnouncementChannel.send(
-                        "📴 Live telah selesai.",
-                    );
+                    logger.info("[YouTube] Live stream has ended.");
+                    // await liveAnnouncementChannel.send(
+                    //     "📴 Live telah selesai.",
+                    // );
                 }
 
                 // No updates
