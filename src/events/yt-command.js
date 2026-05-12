@@ -40,7 +40,7 @@ module.exports = {
                         [
                             video.isShort ? getRandomMessage(shortMessages) : getRandomMessage(uploadMessages),
                             `**${video.title}**`,
-                            video .isShort ? `https://youtu.be/shorts/${video.id}` : `https://youtu.be/${video.id}`,
+                            video.isShort ? `https://youtu.be/shorts/${video.id}` : `https://youtu.be/${video.id}`,
                         ].join("\n"),
                     );
                 }
