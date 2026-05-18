@@ -49,13 +49,38 @@ async function fetchLatest(apiKey, playlistId) {
                 key: apiKey,
                 playlistId: playlistId,
                 part: "snippet",
-                order: "date",
                 maxResults: 5,
             },
         },
     );
 
     return res.data.items || [];
+}
+
+// Check Short
+async function checkShort(videoId) {
+    return new Promise((resolve) => {
+        execFile(
+            ytDlpPath,
+            ["--dump-json", "--no-warnings", `https://youtu.be/${videoId}`],
+            { timeout: 10000 },
+            (error, stdout) => {
+                if (error || !stdout) {
+                    return resolve(false);
+                }
+
+                try {
+                    const data = JSON.parse(stdout);
+
+                    const url = data.webpage_url || data.original_url || "";
+
+                    resolve(url.includes("/shorts/"));
+                } catch {
+                    resolve(false);
+                }
+            },
+        );
+    });
 }
 
 // Check Uploads
@@ -86,6 +111,7 @@ async function checkUploads(apiKey, playlistId) {
         if (!videoId) continue;
 
         if (!data.videos.includes(videoId)) {
+            const isShort = await checkShort(videoId);
             newVideos.push({
                 id: videoId,
                 title: item.snippet.title,
@@ -93,6 +119,7 @@ async function checkUploads(apiKey, playlistId) {
                 thumbnail:
                     item.snippet.thumbnails?.high?.url ||
                     item.snippet.thumbnails?.default?.url,
+                isShort,
             });
         }
     }
