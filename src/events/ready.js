@@ -3,7 +3,6 @@ const logger = require("../utils/logger");
 const config = require("../configs/config");
 const { checkTwitter } = require("../services/twitter.services");
 const { checkUploads, checkLive } = require("../services/youtube.services");
-const cron = require("node-cron");
 
 module.exports = {
     name: Events.ClientReady,
@@ -82,8 +81,9 @@ module.exports = {
         }
 
         await youtubeAnnouncement();
+        await checkTwitter(client);
 
         setInterval(youtubeAnnouncement, 5 * 60 * 1000);
-        cron.schedule("*/5 * * * *", checkTwitter);
+        setInterval(() => checkTwitter(client), 60 * 1000);
     },
 };

@@ -8,12 +8,14 @@ const getFeedUrl = (username) => `https://nitter.net/${username}/rss`;
 
 let lastPostId = null;
 
-async function checkTwitter() {
+async function checkTwitter(client) {
     const username = config.twitterUsername;
     const channelId = config.twitterChannelId;
 
     try {
         const feed = await parser.parseURL(getFeedUrl(username));
+
+        logger.info(JSON.stringify(feed));
 
         if (!feed.items.length) return;
 
@@ -26,9 +28,9 @@ async function checkTwitter() {
 
             const channel = await client.channels.fetch(channelId);
 
-            await channel.send(
-                `📢 **New Post from @${username}**\n${latest.title}\n${latest.link}`,
-            );
+            const url = new URL(latest.link);
+
+            await channel.send(`https://x.com${url.pathname}`);
         }
     } catch (err) {
         logger.error(err.message, err);
