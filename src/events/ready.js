@@ -90,7 +90,7 @@ module.exports = {
         }
 
         await youtubeAnnouncement();
-        await checkTwitter(client);
+        // await checkTwitter(client);
 
         setInterval(youtubeAnnouncement, 5 * 60 * 1000);
         setInterval(() => checkTwitter(client), 60 * 1000);

@@ -1,23 +1,8 @@
 const path = require("path");
 const { welcomeChannelId } = require("../configs/config");
+const { getRandomMessage } = require("../utils/getRandomMessage");
+const { welcomeMessages } = require("../messages/welcome/messages");
 const { AttachmentBuilder, EmbedBuilder, Events } = require("discord.js");
-
-const messages = [
-    "We're happy to have you here! Say hello to everyone and enjoy the community vibes ✨",
-    "Hope you enjoy your stay! Grab some snacks and join the chat 🍿",
-    "The community just got better with you here 💙",
-    "Make yourself comfy and enjoy the stream vibes ✨",
-    "Everyone say hi! A new friend has joined the server 🎉",
-    "Welcome to the cozy corner of the internet 🌸",
-    "A new adventurer has arrived! Enjoy your journey here ✨",
-    "The chat just got more fun with you here! 💫",
-    "Sit back, relax, and enjoy the comfy community vibes 💙",
-    "Salam Hangat dari gunung yang dingin 🏔️",
-];
-
-function getRandomWelcomeMessage() {
-    return messages[Math.floor(Math.random() * messages.length)];
-}
 
 module.exports = {
     name: Events.GuildMemberAdd,
@@ -45,13 +30,8 @@ module.exports = {
                         }),
                     })
                     .setDescription(
-                        `Welcome to **${member.guild.name}** 💙 ${getRandomWelcomeMessage()}`,
+                        `Welcome to **${member.guild.name}** 💙 ${getRandomMessage(welcomeMessages)}`,
                     )
-                    .addFields({
-                        name: "Member Count",
-                        value: `👥 Member #${member.guild.memberCount}`,
-                        inline: true,
-                    })
                     .setThumbnail(
                         member.user.displayAvatarURL({ dynamic: true }),
                     )
