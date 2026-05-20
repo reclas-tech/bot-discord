@@ -1,4 +1,5 @@
 const axios = require("axios");
+const logger = require("./logger");
 const config = require("../configs/config");
 
 async function getUploadsPlaylistId() {
@@ -17,25 +18,25 @@ async function getUploadsPlaylistId() {
         const items = res.data.items;
 
         if (!items || !items.length) {
-            console.log("Channel tidak ditemukan");
+            logger.info("Channel tidak ditemukan");
             return;
         }
 
         const uploadsPlaylistId =
             items[0].contentDetails.relatedPlaylists.uploads;
 
-        console.log("CHANNEL ID:");
-        console.log(config.youtubeChannelId);
+        logger.info("CHANNEL ID:");
+        logger.info(config.youtubeChannelId);
 
-        console.log("\nUPLOADS PLAYLIST ID:");
-        console.log(uploadsPlaylistId);
+        logger.info("\nUPLOADS PLAYLIST ID:");
+        logger.info(uploadsPlaylistId);
     } catch (error) {
-        console.error("ERROR:");
+        logger.error("ERROR:");
 
         if (error.response) {
-            console.error(error.response.data);
+            logger.error(error.response.data);
         } else {
-            console.error(error.message);
+            logger.error(error.message);
         }
     }
 }

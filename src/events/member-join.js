@@ -3,12 +3,13 @@ const { welcomeChannelId } = require("../configs/config");
 const { getRandomMessage } = require("../utils/getRandomMessage");
 const { welcomeMessages } = require("../messages/welcome/messages");
 const { AttachmentBuilder, EmbedBuilder, Events } = require("discord.js");
+const logger = require("../utils/logger");
 
 module.exports = {
     name: Events.GuildMemberAdd,
 
     async execute(member) {
-        console.log(`New member joined: ${member.user.tag}`);
+        logger.info(`New member joined: ${member.user.tag}`);
         const channel = member.guild.channels.cache.get(welcomeChannelId);
 
         if (!channel) return;

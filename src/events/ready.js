@@ -13,7 +13,7 @@ module.exports = {
     once: true,
 
     async execute(client) {
-        console.log(`Logged in as ${client.user.tag}`);
+        logger.info(`Logged in as ${client.user.tag}`);
 
         const uploadAnnouncementChannel = await client.channels.fetch(
             config.youtubeUploadAnnouncementChannelId,

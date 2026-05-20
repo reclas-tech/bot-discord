@@ -17,7 +17,7 @@ const eventsPath = path.join(__dirname, "events");
 const eventFiles = fs.readdirSync(eventsPath);
 
 for (const file of eventFiles) {
-    console.log("Loading event:", file);
+    logger.info(`Loading event: ${file}`);
     const event = require(`./events/${file}`);
 
     if (event.once) {
