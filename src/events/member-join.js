@@ -1,9 +1,9 @@
 const path = require("path");
+const logger = require("../utils/logger");
 const { welcomeChannelId } = require("../configs/config");
 const { getRandomMessage } = require("../utils/getRandomMessage");
 const { welcomeMessages } = require("../messages/welcome/messages");
 const { AttachmentBuilder, EmbedBuilder, Events } = require("discord.js");
-const logger = require("../utils/logger");
 
 module.exports = {
     name: Events.GuildMemberAdd,
@@ -20,7 +20,7 @@ module.exports = {
         );
 
         channel.send({
-            content: `✨ Welcome ${member}!`,
+            content: `✨ Oahyogozaimas ${member}!`,
             embeds: [
                 new EmbedBuilder()
                     .setColor("#5DADE2")
@@ -31,7 +31,7 @@ module.exports = {
                         }),
                     })
                     .setDescription(
-                        `Welcome to **${member.guild.name}** 💙 ${getRandomMessage(welcomeMessages)}`,
+                        `Welcome to **${member.guild.name}** 💙 \n\n ${getRandomMessage(welcomeMessages)}`,
                     )
                     .setThumbnail(
                         member.user.displayAvatarURL({ dynamic: true }),
