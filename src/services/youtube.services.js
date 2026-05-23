@@ -73,8 +73,8 @@ async function checkShort(videoId) {
                     const data = JSON.parse(stdout);
 
                     const url = data.webpage_url || data.original_url || "";
-
-                    resolve(url.includes("/shorts/"));
+                    const media_type = data.media_type || "";
+                    resolve(url.includes("/shorts/") || media_type === "short");
                 } catch {
                     resolve(false);
                 }

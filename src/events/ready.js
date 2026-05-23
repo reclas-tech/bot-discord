@@ -23,6 +23,10 @@ module.exports = {
             config.youtubeLiveAnnouncementChannelId,
         );
 
+        const shortAnnouncementChannel = await client.channels.fetch(
+            config.youtubeShortAnnouncementChannelId,
+        );
+
         async function youtubeAnnouncement() {
             try {
                 // Check uploads
@@ -43,17 +47,23 @@ module.exports = {
 
                 if (upload.type === "new") {
                     for (const video of upload.videos) {
-                        await uploadAnnouncementChannel.send(
-                            [
-                                video.isShort
-                                    ? getRandomMessage(shortMessages)
-                                    : getRandomMessage(uploadMessages),
-                                `**${video.title}**`,
-                                video.isShort
-                                    ? `https://youtu.be/shorts/${video.id}`
-                                    : `https://youtu.be/${video.id}`,
-                            ].join("\n"),
-                        );
+                        if (video.isShort) {
+                            await shortAnnouncementChannel.send(
+                                [
+                                    getRandomMessage(shortMessages),
+                                    `**${video.title}**`,
+                                    `https://youtube.com/shorts/${video.id}`,
+                                ].join("\n"),
+                            );
+                        } else {
+                            await uploadAnnouncementChannel.send(
+                                [
+                                    getRandomMessage(uploadMessages),
+                                    `**${video.title}**`,
+                                    `https://youtu.be/${video.id}`,
+                                ].join("\n"),
+                            );
+                        }
                     }
                 }
 
@@ -92,7 +102,7 @@ module.exports = {
         await youtubeAnnouncement();
         // await checkTwitter(client);
 
-        setInterval(youtubeAnnouncement, 5 * 60 * 1000);
+        setInterval(youtubeAnnouncement, 1 * 60 * 1000);
         setInterval(() => checkTwitter(client), 60 * 1000);
     },
 };
