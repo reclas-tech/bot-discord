@@ -2,7 +2,12 @@ const fs = require("fs");
 const path = require("path");
 const axios = require("axios");
 const logger = require("../utils/logger");
+const config = require("../configs/config");
 const { execFile } = require("child_process");
+const { liveMessages } = require("../messages/yt/liveMessages");
+const { getRandomMessage } = require("../utils/getRandomMessage");
+const { shortMessages } = require("../messages/yt/shortMessages");
+const { uploadMessages } = require("../messages/yt/uploadMessages");
 
 const filePath = path.join(__dirname, "../database/yt.json");
 const ytDlpPath = path.join(__dirname, "../bin/yt-dlp.exe");
@@ -238,7 +243,91 @@ async function checkLive(channelId) {
     });
 }
 
+async function youtubeAnnouncement(client) {
+
+    const uploadAnnouncementChannel = await client.channels.fetch(
+        config.youtubeUploadAnnouncementChannelId,
+    );
+
+    const liveAnnouncementChannel = await client.channels.fetch(
+        config.youtubeLiveAnnouncementChannelId,
+    );
+
+    const shortAnnouncementChannel = await client.channels.fetch(
+        config.youtubeShortAnnouncementChannelId,
+    );
+
+    try {
+        // Check uploads
+        const upload = await checkUploads(
+            config.youtubeApiKey,
+            config.youtubeUploadsPlaylistId,
+        );
+
+        if (upload.type === "init") {
+            logger.info("[YouTube] Initial YouTube upload cache created.");
+        }
+
+        if (upload.type === "empty") {
+            logger.info("[YouTube] Uploads playlist is empty.");
+        }
+
+        if (upload.type === "new") {
+            for (const video of upload.videos) {
+                if (video.isShort) {
+                    await shortAnnouncementChannel.send(
+                        [
+                            getRandomMessage(shortMessages),
+                            `**${video.title}**`,
+                            `https://youtube.com/shorts/${video.id}`,
+                        ].join("\n"),
+                    );
+                } else {
+                    await uploadAnnouncementChannel.send(
+                        [
+                            getRandomMessage(uploadMessages),
+                            `**${video.title}**`,
+                            `https://youtu.be/${video.id}`,
+                        ].join("\n"),
+                    );
+                }
+            }
+        }
+
+        // Check live
+        const live = await checkLive(config.youtubeChannelId);
+
+        if (live.type === "new") {
+            await liveAnnouncementChannel.send(
+                [
+                    getRandomMessage(liveMessages),
+                    `**${live.live.title}**`,
+                    live.live.url,
+                ].join("\n"),
+            );
+        }
+
+        if (live.type === "ended") {
+            logger.info("[YouTube] Live stream has ended.");
+            // await liveAnnouncementChannel.send(
+            //     "📴 Live telah selesai.",
+            // );
+        }
+
+        // No updates
+        if (
+            upload.type === "no_new" &&
+            (live.type === "offline" || live.type === "live")
+        ) {
+            logger.info("[YouTube] No new updates.");
+        }
+    } catch (error) {
+        logger.error("[YouTube] YouTube announcement error:", error);
+    }
+}
+
 module.exports = {
     checkUploads,
     checkLive,
+    youtubeAnnouncement,
 };
