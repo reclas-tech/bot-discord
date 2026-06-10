@@ -2,8 +2,8 @@ const path = require("path");
 const logger = require("../utils/logger");
 const { welcomeChannelId } = require("../configs/config");
 const { getRandomMessage } = require("../utils/getRandomMessage");
-const { welcomeMessages } = require("../messages/welcome/messages");
 const { AttachmentBuilder, EmbedBuilder, Events } = require("discord.js");
+const { welcomeMessages, firstMessages } = require("../messages/welcome/messages");
 
 module.exports = {
     name: Events.GuildMemberAdd,
@@ -20,7 +20,7 @@ module.exports = {
         );
 
         channel.send({
-            content: `✨ Oahyogozaimas ${member}!`,
+            content: `${getRandomMessage(firstMessages)} ${member}!`,
             embeds: [
                 new EmbedBuilder()
                     .setColor("#5DADE2")

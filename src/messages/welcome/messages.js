@@ -1,16 +1,28 @@
+const firstMessages = [
+    "🐰 YOKOSO!",
+    "🌙 Okaeriii",
+    "🎐 KoniJIWA!",
+    "🎌 Irasshaiiii",
+    "✨ Oahyogozaimasuuu~",
+    "🎋 WERUKAMU SIERREGARS ♡",
+    "🌺 Ara ara, newbie dayoo~",
+    "🌸 Gomoni Newbie Sierregars!",
+];
+
 const welcomeMessages = [
-    "We're happy to have you here! Say hello to everyone and enjoy the community vibes ✨",
-    "Hope you enjoy your stay! Grab some snacks and join the chat 🍿",
+    "Salam Hangat dari gunung yang dingin 🏔️",
+    "The chat just got more fun with you here! 💫",
+    "Welcome to the cozy corner of the internet 🌸",
     "The community just got better with you here 💙",
     "Make yourself comfy and enjoy the stream vibes ✨",
     "Everyone say hi! A new friend has joined the server 🎉",
-    "Welcome to the cozy corner of the internet 🌸",
-    "A new adventurer has arrived! Enjoy your journey here ✨",
-    "The chat just got more fun with you here! 💫",
     "Sit back, relax, and enjoy the comfy community vibes 💙",
-    "Salam Hangat dari gunung yang dingin 🏔️",
+    "A new adventurer has arrived! Enjoy your journey here ✨",
+    "Hope you enjoy your stay! Grab some snacks and join the chat 🍿",
+    "We're happy to have you here! Say hello to everyone and enjoy the community vibes ✨",
 ];
 
 module.exports = {
+    firstMessages,
     welcomeMessages,
 };

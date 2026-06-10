@@ -17,7 +17,7 @@ module.exports = {
         logger.info(`Logged in as ${client.user.tag}`);
 
         await youtubeAnnouncement(client);
-        await checkTwitter(client);
+        await checkTwitter(client, true);
 
         setInterval(() => youtubeAnnouncement(client), 1 * 60 * 1000);
         setInterval(() => checkTwitter(client), 60 * 1000);

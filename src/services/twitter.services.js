@@ -49,7 +49,7 @@ function savePostId(postId) {
     }
 }
 
-async function checkTwitter(client) {
+async function checkTwitter(client, first = false) {
     const username = config.twitterUsername;
     const channelId = config.twitterChannelId;
 
@@ -63,6 +63,10 @@ async function checkTwitter(client) {
         const latest = feed.items[0];
 
         const latestId = latest.guid;
+
+        if (first) {
+            savePostId(latestId);
+        }
 
         const savedPosts = getSavedPosts();
 
