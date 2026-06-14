@@ -1,14 +1,9 @@
 const shortMessages = [
-    "⚡ SHORT BARU! Cepet sih… tapi efeknya lama 😆👇",
-    "🎯 15 detik yang mungkin bikin hari kamu lebih baik 😎",
-    "🔥 Mpuy drop short—scroll boleh, tapi ini wajib stop!",
-    "📱 Konten mini, hiburan maxi—cek short terbaru!",
-    "👀 Kedip dikit, ketinggalan—buruan tonton short Mpuy!",
-    "😏 Jangan remehkan short ini… bisa bikin kamu replay terus",
-    "🚀 Quick content alert! Mpuy hadir lagi dengan short baru!",
-    "😂 Warning: bisa bikin ketawa tiba-tiba di tempat umum",
-    "🎬 Mini video, big vibes—langsung klik!",
-    "⚡ Fast, fun, dan fresh—short Mpuy sudah keluar!",
+    "Mpuy bikin brainrot apa lagi nih? ₍^. .^₎⟆",
+    "Sierregars yang baik wajib nonton ini 𐔌՞꜆. ̫.꜀՞𐦯",
+    "Mpuy drop short—scroll boleh, tapi tinggalin jejak dulu!",
+    "Kalo ada shorts artinya mpuy gabut, sekalian tagih kapan livestream!",
+    "Nah ada gebrakan baru apa lagi dari manusia gunung ini? (˶˃𐃷˂˶)",
 ];
 
 module.exports = {
