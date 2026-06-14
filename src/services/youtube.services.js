@@ -8,6 +8,7 @@ const { liveMessages } = require("../messages/yt/liveMessages");
 const { getRandomMessage } = require("../utils/getRandomMessage");
 const { shortMessages } = require("../messages/yt/shortMessages");
 const { uploadMessages } = require("../messages/yt/uploadMessages");
+const { upcomingMessages } = require("../messages/yt/upcomingMessages");
 
 const filePath = path.join(__dirname, "../database/yt.json");
 const ytDlpPath = path.join(__dirname, "../bin/yt-dlp.exe");
@@ -18,6 +19,9 @@ function getData() {
         videos: [],
         live: {
             current: null,
+        },
+        upcoming: {
+            streams: [],
         },
     };
 
@@ -34,6 +38,10 @@ function getData() {
             live: {
                 ...defaultData.live,
                 ...parsed.live,
+            },
+            upcoming: {
+                ...defaultData.upcoming,
+                ...parsed.upcoming,
             },
         };
     } catch {
@@ -170,6 +178,14 @@ async function checkLive(channelId) {
                     "\n",
                 );
 
+                // Waiting room
+                if (errorMessage.includes("This live event will begin")) {
+                    return resolve({
+                        type: "upcoming",
+                    });
+                }
+
+                // Offline
                 if (
                     errorMessage.includes("The channel is not currently live")
                 ) {
@@ -191,6 +207,7 @@ async function checkLive(channelId) {
                     });
                 }
 
+                // Unexpected yt-dlp error
                 if (error) {
                     logger.error("[YouTube] Yt-dlp Error:", error);
 
@@ -219,6 +236,10 @@ async function checkLive(channelId) {
                     if (data.live.current !== live.id) {
                         data.live.current = live.id;
 
+                        data.upcoming.streams = data.upcoming.streams.filter(
+                            (id) => id !== live.id,
+                        );
+
                         saveData(data);
 
                         return resolve({
@@ -243,8 +264,130 @@ async function checkLive(channelId) {
     });
 }
 
-async function youtubeAnnouncement(client) {
+async function getUpcomingInfo(videoId) {
+    return new Promise((resolve) => {
+        execFile(
+            ytDlpPath,
+            [
+                "--dump-json",
+                "--no-warnings",
+                `https://www.youtube.com/watch?v=${videoId}`,
+            ],
+            { timeout: 30000 },
+            (error, stdout, stderr) => {
+                const match = stderr.match(
+                    /This live event will begin in (.+?)\./,
+                );
 
+                resolve({
+                    beginIn: match ? match[1] : null,
+                });
+            },
+        );
+    });
+}
+
+function beginInToTimestamp(beginIn) {
+    if (!beginIn) {
+        return null;
+    }
+
+    const now = Math.floor(Date.now() / 1000);
+
+    const dayMatch = beginIn.match(/(\d+)\s+days?/i);
+    if (dayMatch) {
+        return now + Number(dayMatch[1]) * 86400;
+    }
+
+    const hourMatch = beginIn.match(/(\d+)\s+hours?/i);
+    if (hourMatch) {
+        return now + Number(hourMatch[1]) * 3600;
+    }
+
+    const minuteMatch = beginIn.match(/(\d+)\s+minutes?/i);
+    if (minuteMatch) {
+        return now + Number(minuteMatch[1]) * 60;
+    }
+
+    return null;
+}
+
+// Check Upcoming
+async function checkUpcoming(channelId) {
+    const data = getData();
+
+    return new Promise((resolve) => {
+        execFile(
+            ytDlpPath,
+            [
+                "--flat-playlist",
+                "--dump-json",
+                "--playlist-end",
+                "20",
+                "--no-warnings",
+                `https://www.youtube.com/channel/${channelId}/streams`,
+            ],
+            { timeout: 30000 },
+            async (error, stdout) => {
+                if (error || !stdout) {
+                    return resolve({
+                        type: "none",
+                        streams: [],
+                    });
+                }
+
+                try {
+                    const streams = stdout
+                        .trim()
+                        .split("\n")
+                        .filter(Boolean)
+                        .map((line) => JSON.parse(line));
+
+                    const upcomingStreams = streams.filter(
+                        (stream) =>
+                            stream.duration === null &&
+                            !data.upcoming.streams.includes(stream.id),
+                    );
+
+                    const newUpcoming = await Promise.all(
+                        upcomingStreams.map(async (stream) => {
+                            const info = await getUpcomingInfo(stream.id);
+
+                            return {
+                                id: stream.id,
+                                title: stream.title,
+                                url: stream.url,
+                                beginIn: info.beginIn,
+                            };
+                        }),
+                    );
+
+                    for (const stream of newUpcoming) {
+                        data.upcoming.streams.push(stream.id);
+                    }
+
+                    data.upcoming.streams = data.upcoming.streams.slice(-100);
+
+                    saveData(data);
+
+                    return resolve({
+                        type: newUpcoming.length > 0 ? "new" : "none",
+                        streams: newUpcoming,
+                    });
+                } catch (err) {
+                    logger.error("[YouTube] Upcoming Parse Error:", err);
+
+                    return resolve({
+                        type: "error",
+                        streams: [],
+                    });
+                }
+            },
+        );
+    });
+}
+
+async function youtubeAnnouncement(client) {
     const uploadAnnouncementChannel = await client.channels.fetch(
         config.youtubeUploadAnnouncementChannelId,
     );
@@ -294,6 +437,30 @@ async function youtubeAnnouncement(client) {
             }
         }
 
+        // Check upcoming
+        const upcoming = await checkUpcoming(config.youtubeChannelId);
+
+        if (upcoming.type === "new") {
+            for (const stream of upcoming.streams) {
+                const timestamp = beginInToTimestamp(stream.beginIn);
+
+                const date = timestamp
+                    ? `<t:${timestamp}:F>`
+                    : stream.beginIn
+                      ? `Mulai dalam ${stream.beginIn}`
+                      : "Jadwal belum diketahui";
+
+                await liveAnnouncementChannel.send(
+                    [
+                        getRandomMessage(upcomingMessages),
+                        `**${stream.title}**`,
+                        date,
+                        stream.url,
+                    ].join("\n"),
+                );
+            }
+        }
+
         // Check live
         const live = await checkLive(config.youtubeChannelId);
 
@@ -329,5 +496,6 @@ async function youtubeAnnouncement(client) {
 module.exports = {
     checkUploads,
     checkLive,
+    checkUpcoming,
     youtubeAnnouncement,
 };
